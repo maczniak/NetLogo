@@ -58,6 +58,7 @@ class Client(uid: String) {
       // this case is when a version has been sent but no handshake has taken place
       // we send the "KICKME" message to tell the server to boot us
       println(s"$uid sending KICKME")
+      listener.stopWriting()
       sendDataAndWait("KICKME")
     } else {
       println(s"$uid asked to logout from state $activeState, no action necessary")
