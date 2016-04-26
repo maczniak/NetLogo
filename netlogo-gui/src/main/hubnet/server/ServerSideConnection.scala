@@ -39,10 +39,15 @@ class ServerSideConnection(connectionStreams:Streamable, val remoteAddress: Stri
       // so, this string we received must be the version of the client.
       case s:String =>
         if(clientId == null) {
-          if (s == Version.version) validClientVersion = true
+          if (s == Version.version) {
+            validClientVersion = true
+          }
           sendData(Version.version)
-        }
-        else {
+        } else if (s == "KICKME") {
+          // We use this to handle clients who disconnect after
+          // sending a version, but before sending a handshake
+          dieHard(reason="kickme")
+        } else {
           // TODO: handle the client sending another string after theyve already logged in
           // probably should just send them an ExitMessage and disconnect.
           // TODO: is disconnect the right call here?
