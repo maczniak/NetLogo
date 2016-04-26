@@ -68,7 +68,7 @@ trait HubNetInterface extends ViewInterface with ModelSections.BufSaveable {
 
   /// clients
   @throws(classOf[LogoException])
-  def setClientInterface(clientType: String, interfaceInfo:Iterable[AnyRef])
+  def setClientInterface(clientType: String, interfaceInfo: Seq[JSerializable])
   def newClient(isRobo: Boolean, waitTime: Int)
   def sendFromLocalClient(clientName:String, tag: String, content: AnyRef): Option[String]
   def isOverridable(agentType: AgentKind, varName: String): Boolean

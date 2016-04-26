@@ -36,7 +36,7 @@ class MockConnectionManager(connection: ConnectionInterface, workspace: Abstract
   @throws(classOf[HubNetException])
   override def send(node:String, tag:String, message:JSerializable) =
     if (!validTag) throw new HubNetException(tag + " is an invalid tag") else true
-  override def setClientInterface(interfaceType:String, interfaceInfo: Iterable[AnyRef]){}
+  override def setClientInterface(interfaceType:String, interfaceInfo: Seq[java.io.Serializable]){}
   override def sendPlot(clientId:String, plot:PlotInterface){}
   override def sendTextMessage(node:String, text:String) = true
   override def sendClearTextMessage(node:String) = true

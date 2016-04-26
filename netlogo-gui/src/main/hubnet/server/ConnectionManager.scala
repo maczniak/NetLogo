@@ -14,6 +14,8 @@ import java.net.{BindException, ServerSocket}
 import org.nlogo.api.{WorldPropertiesInterface, ModelReader, PlotInterface}
 import org.nlogo.hubnet.connection.{Streamable, ConnectionTypes, Ports, HubNetException, ConnectionInterface}
 import collection.JavaConverters._
+import scala.collection.immutable.IndexedSeq
+import java.io.{ Serializable => JSerializable}
 
 // Connection Manager calls back to this when these events happen.
 // HeadlessHNM uses it to simply print events.
@@ -73,9 +75,10 @@ class ConnectionManager(val connection: ConnectionInterface,
   }
 
   private type ClientType = String
-  private val clientInterfaceMap = collection.mutable.HashMap[ClientType, Iterable[AnyRef]]()
+  private var clientInterfaces: Seq[(ClientType, Seq[JSerializable])] =
+    Seq()
   private def clientInterfaceSpec: ClientInterface = {
-    clientInterfaceMap(ConnectionTypes.COMP_CONNECTION).head.asInstanceOf[ClientInterface]
+    clientInterfaces.find(_._1 == ConnectionTypes.COMP_CONNECTION).get.asInstanceOf[ClientInterface]
   }
   // this business needs to get cleaned up
   // for different client types. im leaving this hack in for now,
@@ -88,7 +91,7 @@ class ConnectionManager(val connection: ConnectionInterface,
   // I believe this would be best cleaned up if clients could register for
   // the message types they are interestd in, and also what tags are valid.
   // JC - 2/26/10
-  def nodesHaveView = clientInterfaceMap.nonEmpty && clientInterfaceSpec.containsViewWidget
+  def nodesHaveView = clientInterfaces.nonEmpty && clientInterfaceSpec.containsViewWidget
   def isRunning = running
 
   /*
@@ -102,7 +105,9 @@ class ConnectionManager(val connection: ConnectionInterface,
     running = true
     // we set this when hubnet-reset is called now, instead
     // of forcing users to call hubnet-set-client-interface "COMPUTER" []
-    clientInterfaceMap(ConnectionTypes.COMP_CONNECTION) = List(createClientInterfaceSpec)
+    clientInterfaces = clientInterfaces
+      .filterNot(_._1 == ConnectionTypes.COMP_CONNECTION) :+
+        ConnectionTypes.COMP_CONNECTION -> Seq(createClientInterfaceSpec)
 
     // try every port from DEFAULT_PORT_NUMBER to MAX_PORT_NUMBER until
     // we find one that works
@@ -225,17 +230,15 @@ class ConnectionManager(val connection: ConnectionInterface,
     plotManager.initPlotListeners()
   }
 
-  def setClientInterface(interfaceType: ClientType, interfaceInfo: Iterable[AnyRef]) {
+  def setClientInterface(interfaceType: ClientType, interfaceInfo: Seq[JSerializable]) {
     // we set this when hubnet-reset is called now, instead
     // of forcing users to call hubnet-set-client-interface "COMPUTER" []
     // however, if they still want to call it, we should just update it here anyway.
     // its usually assumed that a call to hubnet-reset will happen right after this call
     // but, it doesn't hurt to keep this here. JC 12/28/10
-    clientInterfaceMap(interfaceType) =
-      if(interfaceType == ConnectionTypes.COMP_CONNECTION)
-        List(createClientInterfaceSpec)
-      else
-        interfaceInfo
+    clientInterfaces = clientInterfaces
+      .filterNot(_._1 == interfaceType) :+
+        interfaceType -> interfaceInfo
   }
 
   private def createClientInterfaceSpec: ClientInterface = {
@@ -257,11 +260,13 @@ class ConnectionManager(val connection: ConnectionInterface,
    * Called by ServerSideConnection.
    */
   def createHandshakeMessage(clientType:ClientType) = {
-    new HandshakeFromServer(workspace.modelNameForDisplay, clientInterfaceMap(clientType))
+    clientInterfaces.find(_._1 == clientType).map {
+      case (_, ci) => new HandshakeFromServer(workspace.modelNameForDisplay, IndexedSeq(ci: _*))
+    }.get
   }
 
   def isSupportedClientType(clientType:String): Boolean =
-    clientInterfaceMap.isDefinedAt(clientType)
+    clientInterfaces.exists(_._1 == clientType)
 
   def isValidTag(tag:String) = clientInterfaceSpec.containsWidget(tag)
 

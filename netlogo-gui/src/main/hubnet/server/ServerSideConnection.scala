@@ -81,9 +81,10 @@ class ServerSideConnection(connectionStreams:Streamable, val remoteAddress: Stri
           sendData(new LoginFailure("The HubNet model you are connected to does not support your client type: " + clientType))
         }
         else try output.synchronized {
-          if (server.finalizeConnection(this, desiredClientId = userId)){
+          if (server.finalizeConnection(this, desiredClientId = userId)) {
             clientId = userId
-            sendData(server.createHandshakeMessage(clientType))
+            val hs = server.createHandshakeMessage(clientType)
+            sendData(hs)
             // make sure clients get current view mirroring state.
             // ideally we'd only send this full update to the client that
             // just joined, rather than broadcasting it to everyone. - ST 12/5/09

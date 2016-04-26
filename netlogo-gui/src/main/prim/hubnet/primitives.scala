@@ -160,7 +160,10 @@ class _hubnetsetclientinterface extends Command {
     val interfaceInfo = argEvalList(context, 1)
     workspace.waitFor(new CommandRunnable {
       override def run() {
-        workspace.getHubNetManager.setClientInterface(interfaceType, interfaceInfo.toIterable)
+        val serializableInfo = interfaceInfo.toVector.collect {
+          case able: java.io.Serializable => able
+        }.toSeq
+        workspace.getHubNetManager.setClientInterface(interfaceType, serializableInfo)
       }
     })
     context.ip = next

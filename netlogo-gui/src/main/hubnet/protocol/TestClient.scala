@@ -4,7 +4,7 @@ package org.nlogo.hubnet.protocol
 
 import java.net.Socket
 import org.nlogo.api.Version
-import java.io.{IOException, ObjectOutputStream}
+import java.io.{IOException, ObjectOutputStream, Serializable => JSerializable}
 import org.nlogo.util.ClassLoaderObjectInputStream
 import java.util.concurrent.{Executors, ExecutorService, TimeUnit, LinkedBlockingQueue}
 import collection.JavaConverters._
@@ -46,7 +46,7 @@ case class TestClient(userId: String, clientType: String="COMPUTER", ip:String="
 
   // attempts the handshake and explodes if it fails
   // called from the constructor.
-  private def handshake(): (String, Iterable[AnyRef]) = {
+  private def handshake(): (String, Seq[JSerializable]) = {
     def sendAndReceive(a: AnyRef): AnyRef = {
       rawSend(a)
       in.readObject()

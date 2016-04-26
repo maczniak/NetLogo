@@ -143,7 +143,7 @@ abstract class HubNetManager(workspace: AbstractWorkspaceScala) extends HubNetIn
 
   /// clients
   @throws(classOf[HubNetException])
-  def setClientInterface(interfaceType:String, interfaceInfo: Iterable[AnyRef]){
+  def setClientInterface(interfaceType:String, interfaceInfo: Seq[JSerializable]){
     connectionManager.setClientInterface(interfaceType, interfaceInfo)
     resetPlotManager()
   }

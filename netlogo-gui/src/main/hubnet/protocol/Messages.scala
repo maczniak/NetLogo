@@ -3,6 +3,7 @@
 package org.nlogo.hubnet.protocol
 
 import org.nlogo.api.{Version, PlotInterface}
+import scala.collection.immutable.IndexedSeq
 import java.io.{ObjectInputStream, ObjectOutputStream, DataOutputStream,
                 ByteArrayOutputStream, ByteArrayInputStream, DataInputStream, IOException, Serializable => JSerializable}
 
@@ -14,7 +15,7 @@ trait Message extends JSerializable
 @SerialVersionUID(0)
 case class HandshakeFromClient(userId: String, clientType: String) extends Message
 @SerialVersionUID(0)
-case class HandshakeFromServer(activityName: String, interfaceSpecList: Iterable[AnyRef]) extends Message
+case class HandshakeFromServer(activityName: String, interfaceSpecList: IndexedSeq[JSerializable]) extends Message
 
 // Message from server tells client that login has failed
 @SerialVersionUID(0)
